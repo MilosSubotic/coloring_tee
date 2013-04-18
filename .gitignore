@@ -1,0 +1,9 @@
+*~
+*.o
+*.os
+*.a
+*.so
+*.d
+*.pyc
+.sconsign.dblite
+build/

@@ -1,0 +1,45 @@
+'''
+@file: SConscript
+@date: Okt 21, 2012
+
+@brief: Cross compilation SConscript.
+@version: 1.0 
+
+@author: Milos Subotic milos.subotic.sm@gmail.com
+@license: MIT
+'''
+
+###############################################################################
+
+from __future__ import print_function
+
+import os
+
+import Utils
+import Targets
+import ProjectCompile
+
+###############################################################################
+
+Import('globalEnv')
+
+localEnv = Utils.cloneSConsEnvironment(globalEnv)
+
+###############################################################################
+
+projectName = 'utils'
+
+localEnv['CPPPATH'] += ['include/']
+
+###############################################################################
+
+targets = ProjectCompile.crossCompile(env = localEnv, 
+		projectName = projectName, 
+		buildFunction = ProjectCompile.staticLibraryBuildFunctionRecursive, 
+		VPATH = localEnv.getVPATH())
+
+if localEnv.isRootProject():
+	standardTargets = Targets.makeStandardTargets(localEnv, targets)
+	localEnv.Default('all')
+
+

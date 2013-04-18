@@ -1,0 +1,13 @@
+--------- beginning of /dev/log/main
+01-01 00:00:10.093 I/DEBUG   ( 1831): debuggerd: Feb  4 2013 19:50:24
+--------- beginning of /dev/log/system
+01-01 00:00:10.543 I/Vold    ( 1829): Vold 2.1 (the revenge) firing up
+01-01 00:00:10.551 I/Netd    ( 1830): Netd 1.0 starting
+01-01 00:00:10.589 D/Vold    ( 1829): Volume sdcard state changing -1 (Initializing) -> 0 (No-Media)
+!!!!!!base=0x766bd000 Data=0x0
+01-01 00:00:10.773 I/AndroidRemoteServer( 1827): Finding input dev...
+01-01 00:00:10.773 I/AndroidRemoteServer( 1827): Checking input: /dev/input/mice
+01-01 00:00:10.773 E/AndroidRemoteServer( 1827): Error!EVIOCGNAME: Not a typewriter
+01-01 00:00:12.605 D/NEXUS   ( 1877): nexus.ko insmod Success
+01-01 00:00:12.610 I/dalvikvm( 1834): DalvikTurbo: build IMM76D @ 217358 on Sep 28 2012 14:25:29
+01-01 00:00:13.953 W/NEXUS   ( 1877): Set output format to default e720p

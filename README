@@ -1,0 +1,22 @@
+
+- For installation read INSTALL.
+
+- Examples of usage:
+	
+	make 2>&1 | coloring_tee --color-schemes=gcc --html build.html build.log
+	adb logcat | coloring_tee --color-schemes=logcat --html=log.html log.logcat 
+	
+- Use existing scripts in from bin directory, installed in $PREFIX/bin, 
+	by default /usr/local/bin, which should be in $PATH.
+	
+- If you do not like coloring sheme change "~/.coloring_tee/config.lua"
+	or use some other config file and give it to coloring_tee 
+	with "--config" flag.
+	
+- Contribute:
+	- problems with building.
+	- more errors and stuff for coloring in config files.
+	- new scripts.
+	- any kind of bug.
+	
+	

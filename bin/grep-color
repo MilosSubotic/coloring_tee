@@ -1,0 +1,6 @@
+#!/bin/bash
+
+grep --color=auto -Hn "$@"
+
+exit $?
+

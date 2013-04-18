@@ -1,0 +1,22 @@
+
+- To install prerequisites for build, installation and usage this program 
+on Ubuntu/Debian do:
+
+	sudo apt-get install g++ scons pkg-config liblua5.1-dev
+
+- Remove stale files:
+
+	rm -f .sconsign.dblite site_scons/*.pyc
+
+- If you want you could configure global config file:
+
+	gedit share/coloring_tee/config.lua
+	
+	or you could edit "~/.coloring_tee/config.lua" which will be made after 
+	first run of program coloring_tee.
+
+- For build and install run:
+
+	scons
+	sudo scons install
+	

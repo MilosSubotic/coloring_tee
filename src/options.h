@@ -1,0 +1,35 @@
+/**
+ * @file options.h
+ * @date Oct 17, 2012
+ *
+ * @brief
+ * @version 2.0
+ * @author Milos Subotic milos.subotic.sm@gmail.com
+ *
+ * @license GPLv3
+ *
+ */
+
+#ifndef OPTIONS_H_
+#define OPTIONS_H_
+
+///////////////////////////////////////////////////////////////////////////////
+
+#include "optionparser.h"
+
+#include "config.h"
+
+///////////////////////////////////////////////////////////////////////////////
+
+enum optionIndex{
+	UNKNOWN, APPEND, IGNORE_INTERRUPTS, HTML_OUTPUT, NO_COLORS, NO_BOLD,
+	COLOR_SCHEMES, OPT_CONFIG_FILE, HELP, VERSION
+};
+
+///////////////////////////////////////////////////////////////////////////////
+
+extern const option::Descriptor usage[];
+
+///////////////////////////////////////////////////////////////////////////////
+
+#endif /* OPTIONS_H_ */
