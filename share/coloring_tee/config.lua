@@ -15,6 +15,7 @@ coloring_tee_config = {
 	color_schemes = {
 
 		gcc = {
+			-- gcc.
 			error = { 
 				searchString = 'error:',
 				color = red
@@ -27,6 +28,7 @@ coloring_tee_config = {
 				searchString = 'note:',
 				color = blue
 			},
+			-- ld.
 			requiredFrom = {
 				searchString = 'required from',
 				color = blue
@@ -47,10 +49,20 @@ coloring_tee_config = {
 				searchString = ': undefined reference',
 				color = red
 			},
+			inFunction = {
+				searchString = ': In function',
+				color = blue
+			},
+			-- Makefile.
 			no_rule_to_make_target = {
 				searchString = '*** No rule to make target',
 				color = red
-			}
+			},
+			-- ndk-build.
+			WARNING = {
+				searchString = 'WARNING:',
+				color = yellow
+			},
 		},
 		logcat = {
 			verbose = { 
@@ -76,7 +88,7 @@ coloring_tee_config = {
 			fatal = { 
 				searchString = 'F/',
 				color = red
-			}
+			},
 		}
 	}
 }

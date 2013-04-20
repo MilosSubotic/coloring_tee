@@ -2,8 +2,8 @@
  * @file format.h
  * @date Feb 7, 2012
  *
- * @brief
- * @version 2.0
+ * @brief Format string with variable argument list.
+ * @version 3.0
  * @author Milos Subotic milos.subotic.sm@gmail.com
  *
  * @license GPLv3
@@ -16,6 +16,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <string>
+#include <stdexcept>
+#include "CommonMacros.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -24,7 +26,7 @@
  * @param printf like format c string
  * @return formated string
  */
-std::string format(const char *format, ...);
+std::string format(const char* format, ...) throw(std::runtime_error);
 
 ///////////////////////////////////////////////////////////////////////////////
 

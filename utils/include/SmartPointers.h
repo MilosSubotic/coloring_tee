@@ -115,6 +115,42 @@ public:
 
 	}
 
+	// Copy.
+	sp& operator=(const sp& x) noexcept{
+		std::shared_ptr<T>::operator=(x);
+		return *this;
+	}
+	
+	template <class U> 
+	sp& operator=(const sp<U>& x) noexcept{
+		std::shared_ptr<T>::operator=(x);
+		return *this;
+	}
+
+	// Move.
+	sp& operator=(sp&& x) noexcept{
+		std::shared_ptr<T>::operator=(x);
+		return *this;
+	}
+
+	template <class U>
+	sp& operator=(sp<U>&& x) noexcept{
+		std::shared_ptr<T>::operator=(x);
+		return *this;
+	}
+
+	// Move from.
+	template <class U>
+	sp& operator=(std::auto_ptr<U>&& x){
+		std::shared_ptr<T>::operator=(x);
+		return *this;
+	}
+
+	template <class U, class D>
+	sp& operator=(std::unique_ptr<U, D>&& x){
+		std::shared_ptr<T>::operator=(x);
+		return *this;
+	}
 
 };
 
@@ -142,6 +178,25 @@ public:
 	template<class U>
 	wp(const sp<U>& x) noexcept
 			: std::weak_ptr<T>(x){
+	}
+
+	// Copy.
+	wp& operator=(const wp& x) noexcept {
+		std::weak_ptr<T>::operator=(x);
+		return *this;
+	}
+
+	template <class U>
+	wp& operator=(const wp<U>& x) noexcept{
+		std::weak_ptr<T>::operator=(x);
+		return *this;
+	}
+
+	// Copy from shared.
+	template <class U>
+	wp& operator=(const sp<U>& x) noexcept{
+		std::weak_ptr<T>::operator=(x);
+		return *this;
 	}
 };
 

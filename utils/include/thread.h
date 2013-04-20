@@ -17,6 +17,7 @@
 
 // For std::runtime_error.
 #include <stdexcept>
+#include "CommonMacros.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -210,6 +211,7 @@ static inline void sleepMs(uint ms){
 #endif
 #include <thread>
 #include <mutex>
+#include <condition_variable>
 
 // If indexing in Eclipse do not work add __GXX_EXPERIMENTAL_CXX0X__ to
 // Project -> Properties -> C/C++ General -> Paths and Symbols -> Symbols

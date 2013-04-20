@@ -15,6 +15,9 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
+#define GCC_VERSION_LOWER_THAN(major, minor) \
+	(__GNUC__ < (major) || __GNUC_MINOR__ < (minor))
+
 #if !defined(__GXX_EXPERIMENTAL_CXX0X__)
 
 #define constexpr
@@ -25,7 +28,7 @@ namespace std {
 
 #endif
 
-#if !defined(__GXX_EXPERIMENTAL_CXX0X__) || GCC_VERSION < 40600
+#if !defined(__GXX_EXPERIMENTAL_CXX0X__) || GCC_VERSION_LOWER_THAN(4, 6)
 
 #define noexcept throw()
 
