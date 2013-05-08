@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -o pipefail
+
 make "$@" 2>&1 | coloring_tee -c=gcc
 
 exit $?
