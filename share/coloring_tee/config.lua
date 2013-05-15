@@ -53,6 +53,14 @@ coloring_tee_config = {
 				searchString = ': In function',
 				color = blue
 			},
+			multipleDefinitions = {
+				searchString = ': multiple definition',
+				color = red
+			},
+			firstDefinedHere = {
+				searchString = ': first defined here',
+				color = blue
+			},
 			-- Makefile.
 			no_rule_to_make_target = {
 				searchString = '*** No rule to make target',
