@@ -15,6 +15,11 @@ coloring_tee_config = {
 	color_schemes = {
 
 		gcc = {
+			-- For all.
+			noSuchFileOrDirectory = {
+				searchString = ': No such file or directory',
+				color = red
+			},
 			-- gcc.
 			error = { 
 				searchString = 'error:',
@@ -60,6 +65,10 @@ coloring_tee_config = {
 			firstDefinedHere = {
 				searchString = ': first defined here',
 				color = blue
+			},
+			cannotFind = {
+				searchString = ': cannot find',
+				color = red
 			},
 			-- Makefile.
 			no_rule_to_make_target = {
