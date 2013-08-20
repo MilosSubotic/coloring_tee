@@ -33,6 +33,10 @@ coloring_tee_config = {
 				searchString = 'note:',
 				color = blue
 			},
+			unimplemented = {
+				searchString = 'sorry, unimplemented:',
+				color = red
+			},
 			-- ld.
 			requiredFrom = {
 				searchString = 'required from',
