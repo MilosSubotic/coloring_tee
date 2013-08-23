@@ -110,6 +110,36 @@ coloring_tee_config = {
 				searchString = 'F/',
 				color = red
 			},
-		}
+		},
+		bracket = {
+			verbose = { 
+				searchString = '[verbose]',
+				color = white
+			},
+			debug = { 
+				searchString = '[debug]',
+				color = blue
+			},
+			info = { 
+				searchString = '[info]',
+				color = green
+			},
+			warning = { 
+				searchString = '[warning]',
+				color = yellow
+			},
+			error = { 
+				searchString = '[error]',
+				color = red
+			},
+			critical = { 
+				searchString = '[critical]',
+				color = red
+			},
+			fatal = { 
+				searchString = '[fatal]',
+				color = red
+			},
+		}		
 	}
 }
