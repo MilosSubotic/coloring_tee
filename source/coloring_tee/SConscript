@@ -140,9 +140,12 @@ def _programBuildFunctionRecursive(projectCompileParams):
 
 		projects = [ 'utils' ]
 
-		env['CPPPATH'] += [ os.path.join(s, 'include/') for s in projects ]
+		env['CPPPATH'] += [ os.path.join('../', s, 'include/') 
+				for s in projects ]
 
-		subProjects = [ buildDir.Dir(s).File(
+		projectsBuildDir = env.getVPATH().Dir(
+				projectCompileParams.platformAbiBuild).Dir('source')
+		subProjects = [ projectsBuildDir.Dir(s).File(
 				ProjectCompile.staticLibraryName(env, s)) for s in projects ]
 
 		src += subProjects
@@ -160,19 +163,20 @@ targets = ProjectCompile.crossCompile(env = localEnv,
 
 #######################################
 
-if localEnv.isRootProject():
-	standardTargets = Targets.makeStandardTargets(localEnv, targets)
-	localEnv.Default('linux_release')
 
-	installTargets = []
-	installTargets += localEnv.Install(prefix.Dir('bin'),
-			localEnv.getVPATH().File('linux/x86_64/release/coloring_tee'))
-	installTargets += localEnv.Install(defaultConfigDir,
-			sourceConfigFile)
-	installTargets += localEnv.Install(prefix.Dir('bin'),
-			[ Dir('#').File(s) for s in Utils.glob('*', 'bin') ])
+standardTargets = Targets.makeStandardTargets(localEnv, targets)
+localEnv.Default('linux_release')
 
-	localEnv.Alias('install', installTargets)
-	localEnv.Help('\ninstall\n')
+installTargets = []
+installTargets += localEnv.Install(prefix.Dir('bin'),
+		localEnv.getVPATH().File(
+		'linux/x86_64/release/source/coloring_tee/coloring_tee'))
+installTargets += localEnv.Install(defaultConfigDir,
+		sourceConfigFile)
+installTargets += localEnv.Install(prefix.Dir('bin'),
+		[ Dir('#').File(s) for s in Utils.glob('*', 'bin') ])
+
+localEnv.Alias('install', installTargets)
+localEnv.Help('\ninstall\n')
 
 
