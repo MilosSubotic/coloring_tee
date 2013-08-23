@@ -47,8 +47,8 @@ Export('globalEnv')
 
 ###############################################################################
 
-SConscript('utils/SConscript')
-SConscript('SConscript')
+SConscript('source/utils/SConscript')
+SConscript('source/coloring_tee/SConscript')
 
 Utils.addDistcleanTargets(globalEnv)
 Utils.addTarballTarget(globalEnv, rootProjectName)
