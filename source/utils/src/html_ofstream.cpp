@@ -26,7 +26,7 @@ namespace ostream_color_log {
 	}
 
 	html_ofstream& endl(html_ofstream& hofs){
-		*hofs.thisOfstream() << '\n';
+		*hofs.thisOfstream() << endl;
 		return hofs;
 	}
 
@@ -153,6 +153,7 @@ namespace ostream_color_log {
 		*thisOfstream() << "  </p>\n"
 				" </body>\n"
 				"</html>\n" << std::endl;
+		thisOfstream()->close();
 	}
 
 	void html_ofstream::init(const char* name,
