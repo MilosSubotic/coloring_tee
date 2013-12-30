@@ -3,7 +3,7 @@
 
 - Examples of usage:
 	
-	make 2>&1 | coloring_tee --color-schemes=gcc --html build.html build.log
+	make 2>&1 | coloring_tee --color-schemes=gcc --html=build.html build.log
 	adb logcat | coloring_tee --color-schemes=logcat --html=log.html log.logcat 
 	
 - Use existing scripts in from bin directory, installed in $PREFIX/bin, 
