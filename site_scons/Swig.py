@@ -27,6 +27,9 @@ def JavaSwig(env, swigSources, outDir, package):
 	@return swigSourcesToWrapSources dictionary
 	'''
 
+	if not SCons.Util.is_List(swigSources):
+		swigSources = [ swigSources ]
+
 	rootDir = os.getcwd()
 	javaDir = outDir.Dir('java').Dir(re.sub('\.', '/', package))
 	

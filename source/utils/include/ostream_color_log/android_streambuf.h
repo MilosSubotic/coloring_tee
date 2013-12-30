@@ -6,7 +6,7 @@
  * @version 1.0
  * @author Milos Subotic milos.subotic.sm@gmail.com
  *
- * @license GPLv3
+ * @license LGPLv3
  *
  */
 
@@ -35,7 +35,7 @@ namespace ostream_color_log {
 	    SILENT = ANDROID_LOG_SILENT
 	};
 
-	class android_streambuf: public std::streambuf{
+	class android_streambuf : public std::streambuf {
 	public:
 		android_streambuf(android_log_level logLevel);
 
@@ -43,21 +43,26 @@ namespace ostream_color_log {
 
 		void setLogTag(const std::string& logTag);
 
+		///////////////////////////////
+
+	public:
 		virtual int sync();
 		virtual std::streamsize xsputn(const char* s, std::streamsize n);
 		virtual std::streambuf::int_type overflow(
 				std::streambuf::int_type ch);
 
-	private:
+		///////////////////////////////
+
+	protected:
 		android_log_level _logLevel;
 		std::string _logTag;
 		std::ostringstream _oss;
 	};
 
-} /* namespace ostream_color_log */
+} // namespace ostream_color_log
 
 ///////////////////////////////////////////////////////////////////////////////
 
 #endif
 
-#endif /* ANDROID_STREAMBUF_H_ */
+#endif // ANDROID_STREAMBUF_H_

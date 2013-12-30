@@ -3,7 +3,7 @@
 @date: Okt 19, 2012
 
 @brief: Support to set up SCons.
-@version: 2.0 
+@version: 3.0 
 
 @author: Milos Subotic milos.subotic.sm@gmail.com
 @license: MIT
@@ -13,16 +13,55 @@
 from __future__ import print_function
 
 from SCons.Script import *
+import SCons
 
 import os
 import fnmatch
 from glob import glob as _originalGlob
 import datetime
+import uuid
+import zipfile
+import tarfile
+import platform
 
 ###############################################################################
 
 def printWarning(message):
 	Main._scons_user_warning(message)
+
+def getTimeStamp():
+	now = datetime.datetime.now()
+	timeStamp = "%d-%02d-%02d-%02d-%02d-%02d" % (now.year, now.month, now.day,
+			now.hour, now.minute, now.second) 
+	return timeStamp
+
+def getCurrentDirName():
+	return os.path.basename(os.getcwd())
+
+###############################################################################
+
+class NotSupportedPlatformWarning(SCons.Warnings.Warning):
+	pass
+
+SCons.Warnings.enableWarningClass(NotSupportedPlatformWarning)
+
+def hostPlatform():
+	if platform.system() == 'Linux':
+		return 'linux'
+	else:
+		raise SCons.Errors.StopError(
+			NotSupportedPlatformWarning, 
+			'Not supported host platform "{0}" for now!'.format(
+				platform.system()
+			)
+		)
+
+def hostABI():
+	if hostPlatform() == 'linux':
+		if platform.machine() == 'x86_64':
+			return 'x86_64'
+		else:
+			return 'i686'
 
 ###############################################################################
 
@@ -32,150 +71,176 @@ def rootProjectRelativePath():
 	'''
 	return Dir('#').rel_path(Dir('.'))
 
-def buildDir(vpath):
-	return vpath.Dir(rootProjectRelativePath())
-
-###############################################################################
-	
-class GlobalConfig:
-
-	def cxx0xCXXFLAGS(self): 
-		return [ '-std=c++0x', '-D__STDC_INT64__' ]
-		
-	def __init__(self):
-		self.targetFilter = None
-
-###############################################################################
-	
-def addPathVariable(env, name, help, default, 
-		validator = PathVariable.PathIsDir):
-	variable = Variables(None, ARGUMENTS)
-
-	variable.Add(PathVariable(name, help, default, validator))
-	variable.Update(env)
-	
-	env.Help(variable.GenerateHelpText(env))
-
-
-def constructSConsVariables():
-	variables = Variables(None, ARGUMENTS)
-
-	variables.Add(PathVariable('VPATH', 'Path to build directory',
-						'build', PathVariable.PathIsDirCreate))
-
-	variables.Add(PathVariable('PREFIX', 'Path to install directory',
-						'/usr/local', PathVariable.PathIsDirCreate))
-
-	existingAndroidNDKPath = None
-	try:
-		existingAndroidNDKPath = os.environ['ANDROID_NDK']
-	except KeyError:
-		pass
-	variables.Add(PathVariable('ANDROID_NDK', 'Path to Android NDK directory',
-						existingAndroidNDKPath, PathVariable.PathIsDir))
-
-	return variables
-
-
-
-def constructSConsEnvironment():
-	variables = constructSConsVariables()
-	env = Environment(variables = variables)
-
-	env.Help(variables.GenerateHelpText(env))
-
-	#env.Decider('MD5-timestamp')
-	env.Decider('timestamp-newer')
-
-	envVars = [ 'CPPFLAGS', 'CPPPATH', 'CFLAGS', 'CXXFLAGS', 
-				'LINKFLAGS', 'LIBS', 'LIBPATH' ]
-	for var in envVars:
-		try:
-			env[var]
-		except KeyError:
-			env[var] = SCons.Util.CLVar()
-
-
-	env.globalConfig = GlobalConfig()
-
-	# For enabling linking static to shared libraries.
-	env['STATIC_AND_SHARED_OBJECTS_ARE_THE_SAME'] = 1
-
-	# Methods for geting VPATH.
-	def getVPATH(env):
-		return Dir('#').Dir(env['VPATH'])
-	env.AddMethod(getVPATH, 'getVPATH')
-
-	def getPREFIX(env):
-		return Dir('#').Dir(env['PREFIX'])
-	env.AddMethod(getPREFIX, 'getPREFIX')
-
-	# Method for checking is project root project.
-	def isRootProject(env):
-		return rootProjectRelativePath() == '.'
-	env.AddMethod(isRootProject, 'isRootProject')
-
-	env['DISTCLEAN_TARGETS'] = recursiveGlob('*.pyc', Dir('#').abspath)
-	env['DISTCLEAN_TARGETS'].append(env.getVPATH())
-	def addForDistclean(env, target):
-		if type(target) == list:
-			env['DISTCLEAN_TARGETS'] += target
-		else:
-			env['DISTCLEAN_TARGETS'].append(target)
-	env.AddMethod(addForDistclean, 'addForDistclean')
-
-	return env
-
-
-def cloneSConsEnvironment(env):
-
-	envVars = [ 'CPPFLAGS', 'CPPPATH', 'CFLAGS', 'CXXFLAGS', 
-				'LINKFLAGS', 'LIBS', 'LIBPATH' ]
-
-	clone = env.Clone()
-	for var in envVars:
-		try:
-			clone[var] = SCons.Util.CLVar()
-			clone[var] += env[var]
-		except KeyError:
-			pass
-	
-	# Preserve global distclean targets.
-	clone['DISTCLEAN_TARGETS'] = env['DISTCLEAN_TARGETS']
-	
-	return clone
-
-	
-def addDistcleanTargets(env):
-	env.Clean('distclean', env['DISTCLEAN_TARGETS'])
-	env.Help('\nClean targets (used with -c flag):\n\ndistclean\n')
-	
-def addTarballTarget(env, projectName):
-	now = datetime.datetime.now()
-	dateTime = "%d-%02d-%02d-%02d-%02d-%02d" % (now.year, now.month, now.day,
-			now.hour, now.minute, now.second) 
-	
-	cmd = "cd ..; tar cfvj " + projectName + \
-		"-" + dateTime + ".tar.bz2 " + projectName
-	
-	tarballCommand = env.Command('tarball', None, [ 
-			Delete(env['DISTCLEAN_TARGETS']), cmd ])
-	
-	env.Help('\nUtils targets:\n\ntarball\n')
+def isUnderProjectDir(node):
+	if isinstance(node, SCons.Node.FS.Base):
+		return node.abspath.startswith(Dir('#').abspath)
+	elif isinstance(node, str):
+		return dep.startswith(Dir('#').abspath)
+	else:
+		raise SCons.Errors.StopError('Parameter for isUnderProjectDir() '\
+				'must be of type: File, Dir, or str')
 
 ###############################################################################
 
-def recursiveGlob(pattern, directory = '.'):
+def recursiveGlob(pattern, directories = Dir('.')):
+	if SCons.Util.is_List(directories):
+		directories = map(Dir, directories)
+	else:
+		directories = [ Dir(directories) ]
+
 	found = []
-	for root, dirs, files in os.walk(directory):
-		for basename in files:
-			if fnmatch.fnmatch(basename, pattern):
-				filename = os.path.join(root, basename)
-				found.append(filename)
+	for directory in directories:
+		for root, dirs, files in os.walk(str(directory), followlinks = True):
+			root = Dir(root)
+			for baseName in files:
+				if fnmatch.fnmatch(baseName, pattern):
+					found.append(root.File(baseName))
+			for baseName in dirs:
+				if fnmatch.fnmatch(baseName, pattern):
+					found.append(root.Dir(baseName))			
 	return found
 
-def glob(pattern, directory = '.'):
-	return _originalGlob(os.path.join(directory, pattern))
+def glob(pattern, directories = Dir('.')):
+	if SCons.Util.is_List(directories):
+		directories = map(Dir, directories)
+	else:
+		directories = [ Dir(directories) ]
+
+	found = []
+	for directory in directories:
+		filesOrDirs = _originalGlob(os.path.join(str(directory), pattern))
+		for fileOrDir in filesOrDirs:
+			if os.path.isdir(fileOrDir):
+				found.append(Dir(fileOrDir))
+			else:
+				found.append(File(fileOrDir))
+	return found
+
+###############################################################################
+
+def listToString(prepend, listForJoin):
+	return prepend.join([''] + listForJoin)
+
+###############################################################################
+# Actions.
+
+def _symlink_func(dest, src, force=False):
+	if not SCons.Util.is_List(dest):
+		dest = [dest]
+	for entry in dest:
+		try:
+			os.symlink(str(src), str(entry))
+		except os.error, e:
+			if force:
+				pass
+			else:
+				raise
+
+def _symlink_strfunc(dest, src, force=False):
+	return 'Symlink("%s", "%s")' % (SCons.Defaults.get_paths_str(dest), 
+			str(src))
+
+Symlink = SCons.Action.ActionFactory(_symlink_func, _symlink_strfunc)
+
+#######################################
+
+def _status_func(status):
+	if not SCons.Util.is_List(status):
+		status = [status]
+	for s in status:
+		s = str(s)
+		SCons.Defaults.mkdir_func(os.path.dirname(s))
+		SCons.Node.FS.invalidate_node_memos(s)
+		with open(s, 'w') as f:
+			f.write('Date and time: ')
+			f.write(getTimeStamp())
+			f.write('\nUUID: ')
+			f.write(str(uuid.uuid4()))
+			f.write('\nStatus: ')
+			f.write(os.path.basename(s))
+			f.write('\n')
+			f.close()
+	
+def _status_strfunc(status):
+	return 'Status("%s")' % (SCons.Defaults.get_paths_str(status))
+
+Status = SCons.Action.ActionFactory(_status_func, _status_strfunc)
+
+#######################################
+
+def _zip_func(dest, src, chdir='.', ignore=[]):
+	if not SCons.Util.is_List(src):
+		src = [src]
+	if not SCons.Util.is_List(ignore):
+		ignore = [ignore]
+
+	ignore = [ os.path.abspath(str(i)) for i in ignore ]
+	chdir = str(chdir)
+	chdirLen = len(chdir)
+	dest = str(dest)
+	destFileName = os.path.join(chdir, dest)
+
+	try:
+		destFile = zipfile.ZipFile(destFileName, 'w', zipfile.ZIP_DEFLATED)
+		for s in src:
+			s = os.path.join(chdir, str(s))
+			for dirpath, dirs, files in os.walk(s):
+				absDirpath = os.path.abspath(dirpath)
+				if not any([ absDirpath.startswith(i) for i in ignore]):
+					for f in files:
+						fileName = os.path.join(dirpath, f)
+						if not os.path.abspath(fileName) in ignore:
+							if fileName.startswith(chdir):
+								archName = fileName[chdirLen:]
+							else:
+								archName = fileName
+							destFile.write(fileName, archName)
+	finally:
+		destFile.close()
+
+def _zip_strfunc(dest, src, chdir='.', ignore=[]):
+	return 'Zip("%s", "%s", "%s")' % (dest, SCons.Defaults.get_paths_str(src), 
+			chdir)
+
+Zip = SCons.Action.ActionFactory(_zip_func, _zip_strfunc)
+
+#######################################
+
+def _tar_bz2_func(dest, src, chdir='.', ignore=[]):
+	if not SCons.Util.is_List(src):
+		src = [src]
+	if not SCons.Util.is_List(ignore):
+		ignore = [ignore]
+
+	ignore = [ os.path.abspath(str(i)) for i in ignore ]
+	chdir = str(chdir)
+	chdirLen = len(chdir)
+	dest = str(dest)
+	destFileName = os.path.join(chdir, dest)
+
+	try:
+		destFile = tarfile.open(destFileName, 'w:bz2')
+		for s in src:
+			s = os.path.join(chdir, str(s))
+			for dirpath, dirs, files in os.walk(s):
+				absDirpath = os.path.abspath(dirpath)
+				if not any([ absDirpath.startswith(i) for i in ignore]):
+					for f in files:
+						fileName = os.path.join(dirpath, f)
+						if not os.path.abspath(fileName) in ignore:
+							if fileName.startswith(chdir):
+								archName = fileName[chdirLen:]
+							else:
+								archName = fileName
+							destFile.add(fileName, archName)
+	finally:
+		destFile.close()	
+
+def _tar_bz2_strfunc(dest, src, chdir='.', ignore=[]):
+	return 'TarBz2("%s", "%s", "%s")' % (dest, 
+			SCons.Defaults.get_paths_str(src), chdir)
+
+TarBz2 = SCons.Action.ActionFactory(_tar_bz2_func, _tar_bz2_strfunc)
 
 ###############################################################################
 
@@ -210,7 +275,7 @@ class ConfigFile:
 				name, self._configFileName))
 			return ''
 		
-		if type(pathOrPaths) != list:
+		if not SCons.Util.is_List(pathOrPaths):
 			paths = [ pathOrPaths ]
 		else:
 			paths = pathOrPaths

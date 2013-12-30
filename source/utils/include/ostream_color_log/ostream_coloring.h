@@ -6,13 +6,15 @@
  * @version 1.0
  * @author Milos Subotic milos.subotic.sm@gmail.com
  *
- * @license GPLv3
+ * @license LGPLv3
  *
  * @todo Implement Windows support
  */
 
 #ifndef OSTREAM_COLORING_H_INCLUDED
 #define OSTREAM_COLORING_H_INCLUDED
+
+///////////////////////////////////////////////////////////////////////////////
 
 #include <iostream>
 #include <string>
@@ -21,6 +23,8 @@
 #include <windows.h>
 #error "Not implemented on windows."
 #endif
+
+///////////////////////////////////////////////////////////////////////////////
 
 namespace ostream_color_log{
 
@@ -128,5 +132,7 @@ namespace ostream_color_log{
 	////////////////////////////////////
 
 } // namespace ostream_color_log{
+
+///////////////////////////////////////////////////////////////////////////////
 
 #endif // OSTREAM_COLORING_H_INCLUDED

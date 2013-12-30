@@ -6,7 +6,7 @@
  * @version 1.0
  * @author Milos Subotic milos.subotic.sm@gmail.com
  *
- * @license GPLv3
+ * @license LGPLv3
  *
  */
 
@@ -96,6 +96,10 @@ public:
 			: std::shared_ptr<T>(x){
 	}
 
+	sp(std::shared_ptr<T>&& x) noexcept
+			: std::shared_ptr<T>(x){
+	}
+
 	// Move from managed.
 	template <class U>
 	sp(std::auto_ptr<U>&& x)
@@ -120,8 +124,8 @@ public:
 		std::shared_ptr<T>::operator=(x);
 		return *this;
 	}
-	
-	template <class U> 
+
+	template <class U>
 	sp& operator=(const sp<U>& x) noexcept{
 		std::shared_ptr<T>::operator=(x);
 		return *this;
@@ -152,7 +156,19 @@ public:
 		return *this;
 	}
 
+
 };
+
+template <class T, class Alloc, class... Args>
+inline sp<T> allocate_sp(const Alloc& alloc, Args&&... args){
+    return std::allocate_shared<T, Alloc>(alloc,
+    		std::forward<Args>(args)...);
+}
+
+template <class T, class... Args>
+inline sp<T> make_sp(Args&&... args){
+    return std::make_shared<T>(std::forward<Args>(args)...);
+}
 
 template<typename T>
 class wp : public std::weak_ptr<T> {
@@ -198,6 +214,11 @@ public:
 		std::weak_ptr<T>::operator=(x);
 		return *this;
 	}
+
+	sp<T> lock() const {
+		return this->std::weak_ptr<T>::lock();
+	}
+
 };
 
 #else
@@ -208,4 +229,4 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#endif /* SMARTPOINTERS_H_ */
+#endif // SMARTPOINTERS_H_

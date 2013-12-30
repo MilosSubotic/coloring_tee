@@ -3,7 +3,7 @@
 @date: Okt 19, 2012
 
 @brief: Support for SCons to make targets for cross compilation.
-@version: 2.0 
+@version: 2.1
 
 @author: Milos Subotic milos.subotic.sm@gmail.com
 @license: MIT
@@ -24,15 +24,19 @@ import Utils
 ###############################################################################
 
 builds = ['debug', 'release']
-platforms = ['linux', 'android']
-androidABIs = ['armeabi-v7a', 'armeabi', 'mips', 'x86']
-linuxABIs = ['x86_64']
+
+def _getPlatforms(env):
+	if env.has_key('ANDROID_NDK') and env['ANDROID_NDK'] and \
+			Dir(env['ANDROID_NDK']).exists():
+		return [ 'linux', 'android' ]
+	else:
+		return [ 'linux' ]
 
 def _getABIs(platform):
 	if platform == 'android':
-		return androidABIs
+		return [ 'armeabi-v7a', 'armeabi', 'mips', 'x86' ]
 	else:
-		return linuxABIs
+		return [ 'x86_64', 'i686' ]
 
 ###############################################################################
 
@@ -43,13 +47,18 @@ class TargetTriple:
 		self.build = build
 
 class CompileParams(TargetTriple):
-	def __init__(self, clonedEnv, originalEnv, platform, abi, build):
+	def __init__(self, env, sharedEnv, platform, abi, build):
 		TargetTriple.__init__(self, platform, abi, build)
-		self.clonedEnv = clonedEnv
-		self.originalEnv = originalEnv
+		self.env = env
+		self.sharedEnv = sharedEnv
 		self.platformAbiBuild = os.path.join(platform, abi, build)
 
 ###############################################################################
+
+class AndroidToolchainWarning(SCons.Warnings.Warning):
+	pass
+
+SCons.Warnings.enableWarningClass(AndroidToolchainWarning)
 
 
 def androidToolchain(env, abi, platformLevel, toolchainVersion):
@@ -86,11 +95,12 @@ def androidToolchain(env, abi, platformLevel, toolchainVersion):
 	toolchainPrefix = _toolchainPrefixes[abi]
 
 	env['ARCH'] = arch
-	#env['ABI'] = abi
+	env['ABI'] = abi
 
 	if not env['ANDROID_NDK']:
-		raise RuntimeError('Path to Android NDK directory not defined!')
-
+		raise SCons.Errors.StopError(AndroidToolchainWarning, 
+				'Path to Android NDK directory not defined!')
+		
 	ndk = env['ANDROID_NDK']
 
 
@@ -104,17 +114,18 @@ def androidToolchain(env, abi, platformLevel, toolchainVersion):
 	toolchainDir = os.path.join(ndk, 'toolchains', toolchain, 'prebuilt')
 
 
-	if platform.system() == 'Linux':
-		if platform.machine() == 'x86_64' and \
+	if Utils.hostPlatform() == 'linux':
+		if Utils.hostABI() == 'x86_64' and \
 				os.path.isdir(os.path.join(toolchainDir, 'linux-x86_64')):
 			buildSystem = 'linux-x86_64'
 		elif os.path.isdir(os.path.join(toolchainDir, 'linux-x86')):
 			buildSystem = 'linux-x86'
 		else:
-			raise RuntimeError('There is no prebuild toolchain '\
-				'for host machine in Android NDK!')
+			raise SCons.Errors.StopError(AndroidToolchainWarning, 
+					'There is no prebuild toolchain for host machine in ' \
+					'Android NDK!')
 	else:
-		raise NotImplementedError(
+		raise SCons.Errors.StopError(AndroidToolchainWarning, 
 				'Host OS not supported by script for now!')
 
 
@@ -130,15 +141,13 @@ def androidToolchain(env, abi, platformLevel, toolchainVersion):
 							'sources/cxx-stl/gnu-libstdc++/' +
 							toolchainVersion + '/libs/' + abi + '/include'))
 
-
-	env['CPPFLAGS'] += [ '-DANDROID' ]
+	env['CPPDEFINES'].append('ANDROID')
+	
 	if abi == 'armeabi-v7a':
-		env['CPPFLAGS'] += ['-march=armv7-a',
-							 '-mfloat-abi=softfp', '-mfpu=neon']
+		env['CCFLAGS'] = [ '-march=armv7-a',
+							 '-mfloat-abi=softfp', '-mfpu=neon' ]
 
-	#env['CFLAGS']
-	#env['CXXFLAGS']
-	env['LIBS'] += ['supc++', 'gnustl_static', 'log']
+	env['LIBS'] += [ 'supc++', 'gnustl_static' ]
 
 	env['LIBPATH'].append(os.path.join(ndk,
 									'sources/cxx-stl/gnu-libstdc++/' +
@@ -149,16 +158,46 @@ def androidToolchain(env, abi, platformLevel, toolchainVersion):
 	if abi == 'armeabi-v7a':
 		env['LINKFLAGS'].append('-Wl,--fix-cortex-a8')
 		
-
 	env['CC'] = crossPrefix + 'gcc'
-	env['CXX'] = crossPrefix + 'g++'
+	env['CXX'] = crossPrefix + 'g++'	
+	env['CPP'] = crossPrefix + 'gcc -E'
+	env['CXXCPP'] = crossPrefix + 'g++ -E'
 	env['LINK'] = crossPrefix + 'g++'
+	env['AR'] = crossPrefix + 'ar'
+	env['AS'] = crossPrefix + 'as'
+	env['RUNLIB'] = crossPrefix + 'runlib'
+	
+	# This practicly is not needed.
+	"""
+	pkgConfig = crossPrefix + 'pkg-config'
+	if not os.path.exists(pkgConfig):
+		errorMessage = '''
+Missing {pkgConfig} in Android NDK. 
+Please put make it buy doing this in shell:
+
+sudo cat > {pkgConfig} << EOF
+#!/bin/sh
+
+pkg-config "$@"
+
+exit $?
+
+EOF
+sudo chmod a+x {pkgConfig}
+
+'''.format(pkgConfig = pkgConfig)
+		sys.stderr.write(errorMessage)
+		raise SCons.Errors.StopError(AndroidToolchainWarning, 
+				'Missing pkg-config in Android NDK.')
+	else:
+		env['PKG_CONFIG'] = pkgConfig
+	"""
 
 
 ###############################################################################
 
 
-def buildCrossCompileTargets(env, projectName, buildFunction, 
+def buildCrossCompileTargets(sharedEnv, packageName, buildFunction, 
 		targetFilter = None):
 	'''
 	@param targetFilter functor with TargetTriple as parameter and return
@@ -170,10 +209,9 @@ def buildCrossCompileTargets(env, projectName, buildFunction,
 		if env.globalConfig.targetFilter:
 			targetFilter = env.globalConfig.targetFilter
 
-	originalEnv = env
 	aliases = []
 
-	for platform in platforms:
+	for platform in _getPlatforms(sharedEnv):
 		abis = _getABIs(platform)
 		for abi in abis:
 			for build in builds:
@@ -182,26 +220,31 @@ def buildCrossCompileTargets(env, projectName, buildFunction,
 					if not targetFilter(targetTriple):
 						continue
 
-				clonedEnv = Utils.cloneSConsEnvironment(originalEnv)
+				env = sharedEnv.clone()
 				env['PLATFORM'] = platform
 				env['ABI'] = abi
 				env['BUILD'] = build
 
 				if platform == 'android':
-					# Hardcoded platformLevel and toolchainVersion.
-					androidToolchain(env = clonedEnv,
+					# FIXME Hardcoded platformLevel and toolchainVersion.
+					androidToolchain(env = env,
 								abi = abi,
 								platformLevel = '14',
 								toolchainVersion = '4.6')
+								
+				if platform == 'linux' and abi == 'i686':
+					env['CFLAGS'].append('-m32')
+					env['CXXFLAGS'].append('-m32')
+					env['LINKFLAGS'].append('-m32')										
 
 				if build == 'release':
-					clonedEnv['CPPFLAGS'].append('-O3')
+					env['CPPFLAGS'].append('-O3')
 				else:
-					clonedEnv['CPPFLAGS'] += [ '-O0', '-g3' ]
+					env['CPPFLAGS'] += [ '-O0', '-g3' ]
 
 				params = CompileParams(
-								clonedEnv = clonedEnv,
-								originalEnv = originalEnv,
+								env = env,
+								sharedEnv = sharedEnv,
 								platform = platform,
 								abi = abi,
 								build = build
@@ -210,12 +253,12 @@ def buildCrossCompileTargets(env, projectName, buildFunction,
 				realTarget = buildFunction(compileParams = params)
 
 				if realTarget:
-					alias = projectName + '_' + platform + '_' + abi + '_' + \
+					alias = packageName + '_' + platform + '_' + abi + '_' + \
 								build
 					aliases += env.Alias(alias, realTarget)
 
 
-	s = '\nTargets for %s project:\n\n' % projectName
+	s = '\nTargets for {0} package:\n\n'.format(packageName)
 	for alias in aliases:
 		s += '%s\n' % alias
 	env.Help(s)
@@ -236,7 +279,7 @@ def makeStandardTargets(env, sourceTargets):
 
 	targetsGroup = []
 
-	for platform in platforms:
+	for platform in _getPlatforms(env):
 		for abi in _getABIs(platform):
 			for build in builds:
 				alias = platform + '_' + abi + '_' + build
@@ -256,7 +299,7 @@ def makeStandardTargets(env, sourceTargets):
 	###############
 	# platform_abi
 
-	for platform in platforms:
+	for platform in _getPlatforms(env):
 		for abi in _getABIs(platform):
 			alias = platform + '_' + abi
 			t = []
@@ -277,10 +320,10 @@ def makeStandardTargets(env, sourceTargets):
 	# platform_build
 
 	t = {}
-	for platform in platforms:
+	for platform in _getPlatforms(env):
 		for build in builds:
 			t[platform + '_' + build] = []
-	for platform in platforms:
+	for platform in _getPlatforms(env):
 		for abi in _getABIs(platform):
 			for build in builds:
 				regex = platform + '_' + abi + '_' + build + '$'
@@ -301,7 +344,7 @@ def makeStandardTargets(env, sourceTargets):
 	# platform
 
 	t = {} 
-	for platform in platforms:
+	for platform in _getPlatforms(env):
 		t[platform] = []
 		for abi in _getABIs(platform):
 			alias = platform + '_' + abi
@@ -326,7 +369,7 @@ def makeStandardTargets(env, sourceTargets):
 	t = {}
 	for build in builds:
 		t[build] = []
-	for platform in platforms:
+	for platform in _getPlatforms(env):
 		for abi in _getABIs(platform):
 			for build in builds:
 				regex = platform + '_' + abi + '_' + build + '$'
@@ -359,4 +402,19 @@ def makeStandardTargets(env, sourceTargets):
 
 
 ###############################################################################
+
+def sharedLibraryName(env, name):
+	# TODO This is original but it not working, should be set when toolchain
+	# is set.
+	# return env['SHLIBPREFIX'] + name + env['SHLIBSUFFIX']
+	return env['LIBPREFIX'] + name + env['SHLIBSUFFIX']
+
+def staticLibraryName(env, name):
+	return env['LIBPREFIX'] + name + env['LIBSUFFIX']
+
+def programName(env, name):
+	return env['PROGPREFIX'] + name + env['PROGSUFFIX']
+
+###############################################################################
+
 

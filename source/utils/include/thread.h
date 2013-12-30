@@ -6,7 +6,7 @@
  * @version 1.0
  * @author Milos Subotic milos.subotic.sm@gmail.com
  *
- * @license GPLv3
+ * @license LGPLv3
  *
  */
 
@@ -46,20 +46,50 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class thread{
+class thread {
+public:
+	class id {
+		pthread_t _id;
+
+	public:
+		id()
+				: _id(0) {
+		}
+
+		explicit id(pthread_t id)
+				: _id(id) {
+		}
+
+	private:
+		friend class thread;
+
+		friend bool operator==(thread::id x, thread::id y) {
+			return x._id == y._id;
+		}
+
+		template<class CharType, class TraitsType>
+		friend std::basic_ostream<CharType, TraitsType>&
+		operator<<(
+				std::basic_ostream<CharType, TraitsType>& os,
+				thread::id id) {
+			os << id._id;
+			return os;
+		}
+	};
+
 protected:
 
 	template<typename Functor>
-	class ThreadArgs{
+	class ThreadArgs {
 	public:
 		ThreadArgs(Functor& callable_)
-				: callable(callable_){
+				: callable(callable_) {
 		}
 		Functor callable;
 	};
 
 	template<typename Functor>
-	static inline void* bodyForPthread(void* func){
+	static inline void* bodyForPthread(void* func) {
 		ThreadArgs<Functor>* threadArgs =
 				reinterpret_cast<ThreadArgs<Functor>*>(func);
 		threadArgs->callable();
@@ -69,11 +99,12 @@ protected:
 
 public:
 	template<typename Callable>
-	thread(Callable& callable){
-		ThreadArgs<Callable>* threadArgs = new ThreadArgs<Callable>(
-				callable);
+	thread(Callable& callable) {
+		ThreadArgs<Callable>* threadArgs = new ThreadArgs<Callable>(callable);
 
-		int err = pthread_create(&_thread, NULL,
+		int err = pthread_create(
+				&_thread,
+				NULL,
 				bodyForPthread<Callable>,
 				reinterpret_cast<void*>(threadArgs));
 		if(err != 0){
@@ -82,15 +113,15 @@ public:
 
 	}
 
-	~thread(){
+	~thread() {
 	}
 
-	void detach(){
+	void detach() {
 		if(pthread_detach(_thread) != 0){
 			__THROW_CONCURENT_ERROR();
 		}
 	}
-	void join(){
+	void join() {
 		if(pthread_join(_thread, NULL) != 0){
 			__THROW_CONCURENT_ERROR();
 		}
@@ -101,28 +132,35 @@ protected:
 
 };
 
-class mutex{
+namespace this_thread {
+	inline thread::id get_id(){
+		return thread::id(pthread_self());
+	}
+}
+
+
+class mutex {
 	friend class condition_variable;
 public:
-	mutex(){
+	mutex() {
 		if(pthread_mutex_init(&_mutex, NULL) != 0){
 			__THROW_CONCURENT_ERROR();
 		}
 	}
 
-	~mutex(){
+	~mutex() {
 		if(pthread_mutex_destroy(&_mutex) != 0){
 			__THROW_CONCURENT_ERROR();
 		}
 	}
 
-	void lock(){
+	void lock() {
 		if(pthread_mutex_lock(&_mutex) != 0){
 			__THROW_CONCURENT_ERROR();
 		}
 	}
 
-	void unlock(){
+	void unlock() {
 		if(pthread_mutex_unlock(&_mutex) != 0){
 			__THROW_CONCURENT_ERROR();
 		}
@@ -132,24 +170,24 @@ protected:
 };
 
 template<typename Mutex>
-class unique_lock{
+class unique_lock {
 	friend class condition_variable;
 
 public:
-	unique_lock(Mutex& mutex){
+	unique_lock(Mutex& mutex) {
 		_mutex = &mutex;
 		_mutex->lock();
 	}
 
-	~unique_lock(){
+	~unique_lock() {
 		_mutex->unlock();
 	}
 
-	void lock(){
+	void lock() {
 		_mutex->lock();
 	}
 
-	void unlock(){
+	void unlock() {
 		_mutex->unlock();
 	}
 
@@ -158,33 +196,33 @@ protected:
 
 };
 
-class condition_variable{
+class condition_variable {
 public:
-	condition_variable(){
+	condition_variable() {
 		if(pthread_cond_init(&_cond, NULL) != 0){
 			__THROW_CONCURENT_ERROR();
 		}
 	}
 
-	~condition_variable(){
+	~condition_variable() {
 		if(pthread_cond_destroy(&_cond) != 0){
 			__THROW_CONCURENT_ERROR();
 		}
 	}
 
-	void notify_one(){
+	void notify_one() {
 		if(pthread_cond_signal(&_cond) != 0){
 			__THROW_CONCURENT_ERROR();
 		}
 	}
 
-	void notify_all(){
+	void notify_all() {
 		if(pthread_cond_broadcast(&_cond) != 0){
 			__THROW_CONCURENT_ERROR();
 		}
 	}
 
-	void wait(unique_lock<mutex>& lock){
+	void wait(unique_lock<mutex>& lock) {
 		if(pthread_cond_wait(&_cond, &lock._mutex->_mutex) != 0){
 			__THROW_CONCURENT_ERROR();
 		}
@@ -194,7 +232,7 @@ protected:
 	pthread_cond_t _cond;
 };
 
-static inline void sleepMs(uint ms){
+static inline void sleepMs(uint ms) {
 	struct timespec req;
 	req.tv_sec = ms / 1000;
 	req.tv_nsec = (ms % 1000) * 1000000;
@@ -222,6 +260,10 @@ using std::mutex;
 using std::unique_lock;
 using std::condition_variable;
 
+namespace this_thread{
+	using namespace std::this_thread;
+}
+
 static inline void sleepMs(uint ms){
 	std::chrono::milliseconds duration(ms);
 	std::this_thread::sleep_for(duration);
@@ -231,7 +273,7 @@ static inline void sleepMs(uint ms){
 
 #include <semaphore.h>
 
-class semaphore{
+class semaphore {
 private:
 	sem_t _semapore;
 public:
@@ -241,53 +283,52 @@ public:
 		INTERPROCESS_SHARED
 	};
 
-	semaphore(int initialValue = 0, Pshared pshared = PROCESS_LOCAL){
+	semaphore(int initialValue = 0, Pshared pshared = PROCESS_LOCAL) {
 		if(sem_init(&_semapore, pshared, initialValue)){
 			__THROW_CONCURENT_ERROR();
 		}
 	}
 
-	~semaphore(){
+	~semaphore() {
 		if(sem_destroy(&_semapore)){
 			__THROW_CONCURENT_ERROR();
 		}
 	}
 
-	void post(){
+	void post() {
 		if(sem_post(&_semapore)){
 			__THROW_CONCURENT_ERROR();
 		}
 	}
 
-	void wait(){
+	void wait() {
 		if(sem_wait(&_semapore)){
 			__THROW_CONCURENT_ERROR();
 		}
 	}
 
-	semaphore& operator++(int){
+	semaphore& operator++(int) {
 		post();
 		return *this;
 	}
 
-	semaphore& operator--(int){
+	semaphore& operator--(int) {
 		wait();
 		return *this;
 	}
 
-	void truwait(){
+	void tryWait() {
 		if(sem_trywait(&_semapore)){
 			__THROW_CONCURENT_ERROR();
 		}
 	}
 
-	int getValue(){
+	int getValue() {
 		int sval;
 		// Always return 0.
 		sem_getvalue(&_semapore, &sval);
 		return sval;
 	}
-
 
 };
 
@@ -295,16 +336,16 @@ public:
 
 #include <atomic>
 
-class spin_mutex {
+class spin_mutex{
 private:
 	std::atomic<bool> lockVal;
 public:
 	spin_mutex()
-			: lockVal(false){
+	: lockVal(false){
 	}
 
 	void lock(){
-		 while (lockVal.exchange(true)) { }
+		while (lockVal.exchange(true)){}
 
 	}
 
@@ -317,7 +358,7 @@ public:
 	}
 };
 
-class spin_lock {
+class spin_lock{
 private:
 	spin_mutex& _mutex;
 public:
@@ -325,7 +366,7 @@ public:
 	const spin_lock& operator=(const spin_lock&) = delete;
 public:
 	spin_lock(spin_mutex & mutex)
-			: _mutex(mutex){
+	: _mutex(mutex){
 		_mutex.lock();
 	}
 

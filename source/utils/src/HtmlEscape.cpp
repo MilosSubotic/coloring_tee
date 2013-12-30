@@ -6,7 +6,7 @@
  * @version 1.0
  * @author Milos Subotic milos.subotic.sm@gmail.com
  *
- * @license GPLv3
+ * @license LGPLv3
  *
  * This code is rewriten from Java code. Here is file comment of
  * original author:
@@ -121,13 +121,14 @@ namespace HtmlEscape{
 
         string::iterator iter = original.begin(), end = original.end();
         for(; iter != end ; iter++){
-            switch( (unsigned char)*iter ){
+			int c = *iter;
+            switch( c ){
             ESCAPE_TAGS
             ESCAPE_SPECIAL
             default:
-                if( *iter > 127 ){
+                if( c > 127 ){
                     char x[9];
-                    sprintf(x, "&#x%4x;", (int)*iter);
+                    sprintf(x, "&#x%4x;", c);
                 }else
                   out.append(1, *iter);
                 break;
@@ -149,14 +150,15 @@ namespace HtmlEscape{
 
         string::iterator iter = original.begin(), end = original.end();
         for(; iter != end ; iter++){
-            switch( (unsigned char)*iter ){
+			int c = *iter;
+            switch( c ){
             ESCAPE_TAGS
             ESCAPE_BR
             ESCAPE_SPECIAL
             default:
-                if( *iter > 127 ){
+                if( c > 127 ){
                     char x[9];
-                    sprintf(x, "&#x%4x;", (int)*iter);
+                    sprintf(x, "&#x%4x;", c);
                 }else
                   out.append(1, *iter);
                 break;
@@ -173,9 +175,10 @@ namespace HtmlEscape{
 
         string::iterator iter = original.begin(), end = original.end();
         for(; iter != end ; iter++){
-            switch( (unsigned char)*iter ){
+			int c = *iter;
+            switch( c ){
             ESCAPE_TAGS
-            default:out.append(1, *iter); break;
+            default:out.append(1, c); break;
             }
         }
 
@@ -189,9 +192,10 @@ namespace HtmlEscape{
 
         string::iterator iter = original.begin(), end = original.end();
         for(; iter != end ; iter++){
-            switch( (unsigned char)*iter ){
+			int c = *iter;
+            switch( c ){
             ESCAPE_BR
-            default:out.append(1, *iter); break;
+            default:out.append(1, c); break;
             }
         }
 
@@ -205,14 +209,15 @@ namespace HtmlEscape{
 
         string::iterator iter = original.begin(), end = original.end();
         for(; iter != end ; iter++){
-            switch( (unsigned char)*iter ){
+			int c = *iter;
+            switch( c ){
             ESCAPE_SPECIAL
             default:
-                if( *iter > 127 ){
+                if( c > 127 ){
                     char x[9];
-                    sprintf(x, "&#x%4x;", (int)*iter);
+                    sprintf(x, "&#x%4x;", c);
                 }else
-                  out.append(1, *iter);
+                  out.append(1, c);
                 break;
             }
         }

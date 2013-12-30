@@ -43,10 +43,13 @@ class ProjectCompileParams(Targets.CompileParams):
 
 ###############################################################################
 
-def crossCompile(env, projectName, buildFunction, VPATH, targetFilter = None):
-	'''
-		@param VPATH: type Dir
-	'''
+def crossCompile(env, 
+		projectName, 
+		buildFunction, 
+		VPATH = None, 
+		targetFilter = None):
+	if not VPATH:
+		VPATH = env.getVPATH()
 
 	def _buildFunction(compileParams):
 
@@ -125,20 +128,4 @@ def programBuildFunctionRecursive(projectCompileParams):
 
 	
 ###############################################################################
-
-def sharedLibraryName(env, name):
-	# TODO This is original but it not working
-	# return env['SHLIBPREFIX'] + name + env['SHLIBSUFFIX']
-	return env['LIBPREFIX'] + name + env['SHLIBSUFFIX']
-
-def staticLibraryName(env, name):
-	return env['LIBPREFIX'] + name + env['LIBSUFFIX']
-
-def programName(env, name):
-	return env['PROGPREFIX'] + name + env['PROGSUFFIX']
-
-
-###############################################################################
-
-
 

@@ -1,6 +1,6 @@
 /**
- * @file android_streambuf.cpp
- * @date Mar 18, 2013
+ * @file ostream_coloring_streambuf.cpp
+ * @date May 1, 2013
  *
  * @brief
  * @version 1.0
@@ -10,23 +10,46 @@
  *
  */
 
-#ifdef __ANDROID__
-
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "ostream_color_log/android_streambuf.h"
+#include "ostream_color_log/ostream_coloring_streambuf.h"
+
+#include <cstdlib>
 
 ///////////////////////////////////////////////////////////////////////////////
 
 namespace ostream_color_log {
 
-	android_streambuf::android_streambuf(android_log_level logLevel)
-				: _logLevel(logLevel){}
 
-	android_streambuf::~android_streambuf(){}
+	ostream_coloring_streambuf::ostream_coloring_streambuf(
+			ostream_colors color, bool bold, std::ostream& outputOstream)
+		: _coloringEnabled(true), _color(color), _bold(bold),
+		  _outputOstream(&outputOstream){
+	}
 
-	void android_streambuf::setLogTag(const std::string& logTag){
-		_logTag = logTag;
+	ostream_coloring_streambuf::~ostream_coloring_streambuf(){
+	}
+
+	/**
+	 * Enable or disable coloring. Coloring enabled by default if console
+	 * support coloring, if not does nothing.
+	 * @param enableColoring
+	 */
+	void ostream_coloring_streambuf::setColoringEnabled(bool coloringEnabled){
+		_coloringEnabled = coloringEnabled;
+	}
+
+	void ostream_coloring_streambuf::setBold(bool bold){
+		_bold = bold;
+	}
+
+	/**
+	 * Set output ostream in which log are going to be written.
+	 * @param outputOstream
+	 */
+	void ostream_coloring_streambuf::setOutputOstream(
+			std::ostream& outputOstream){
+		_outputOstream = &outputOstream;
 	}
 
     /**
@@ -37,8 +60,15 @@ namespace ostream_color_log {
      *  including the definition of @a failure.
      *  @note  Base class version does nothing, returns zero.
     */
-	int android_streambuf::sync(){
-		__android_log_write(_logLevel, _logTag.c_str(), _oss.str().c_str());
+	int ostream_coloring_streambuf::sync(){
+		if(_coloringEnabled){
+			if(_bold){
+				(*_outputOstream) << bold;
+			}
+			(*_outputOstream) << _color << _oss.str() << reset << std::flush;
+		}else{
+			(*_outputOstream) << _oss.str() << std::flush;
+		}
 		_oss.str("");
 		return 0;
 	}
@@ -57,7 +87,7 @@ namespace ostream_color_log {
      *  It is expected that derived classes provide a more efficient
      *  implementation by overriding this definition.
     */
-	std::streamsize android_streambuf::xsputn(const char* s,
+	std::streamsize ostream_coloring_streambuf::xsputn(const char* s,
 			std::streamsize n){
 		_oss.write(s, n);
 		return n;
@@ -86,7 +116,7 @@ namespace ostream_color_log {
      *
      *  @note  Base class version does nothing, returns eof().
     */
-	std::streambuf::int_type android_streambuf::overflow(
+	std::streambuf::int_type ostream_coloring_streambuf::overflow(
 				std::streambuf::int_type c)
 	{
 		if (c == traits_type::eof())
@@ -100,7 +130,4 @@ namespace ostream_color_log {
 
 } // namespace ostream_color_log
 
-#endif
-
 ///////////////////////////////////////////////////////////////////////////////
-

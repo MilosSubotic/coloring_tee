@@ -6,7 +6,7 @@
  * @version 1.0
  * @author Milos Subotic milos.subotic.sm@gmail.com
  *
- * @license GPLv3
+ * @license LGPLv3
  *
  */
 
@@ -16,6 +16,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <iostream>
+#include <iomanip>
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -26,7 +27,10 @@ extern std::ostream& warningLog;
 extern std::ostream& errorLog;
 
 #ifdef __ANDROID__
-void setLogTag(const std::string& logTag);
+void log_setLogTag(const std::string& logTag);
+#else
+void log_setColoringEnabled(bool coloringEnabled);
+void log_setBold(bool bold);
 #endif
 
 using std::endl;
@@ -41,6 +45,8 @@ tab(std::basic_ostream<CharType, TraitsType>& __os){
 #define POSITION __PRETTY_FUNCTION__ << " @ " 	<< __LINE__ << ": "
 #define DEBUG(x) do{ debugLog << PRINT(x) << endl; }while(0)
 #define TRACE() do{ debugLog << POSITION << endl; }while(0)
+#define PRINT_ADDRESS(x) std::hex << x \
+		<< std::resetiosflags(std::ios::hex)
 
 ///////////////////////////////////////////////////////////////////////////////
 

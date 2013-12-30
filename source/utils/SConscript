@@ -2,8 +2,8 @@
 @file: SConscript
 @date: Okt 21, 2012
 
-@brief: Cross compilation SConscript.
-@version: 1.0 
+@brief: Cross compilation SConscript for utils package.
+@version: 2.0 
 
 @author: Milos Subotic milos.subotic.sm@gmail.com
 @license: MIT
@@ -13,33 +13,28 @@
 
 from __future__ import print_function
 
-import os
+###############################################################################
 
+import Package
 import Utils
-import Targets
-import ProjectCompile
 
 ###############################################################################
 
-Import('globalEnv')
-
-localEnv = Utils.cloneSConsEnvironment(globalEnv)
-
-###############################################################################
-
-projectName = 'utils'
-
-localEnv['CPPPATH'] += ['include/']
+Import('sconscriptArgs')
+project = sconscriptArgs.project
 
 ###############################################################################
 
-targets = ProjectCompile.crossCompile(env = localEnv, 
-		projectName = projectName, 
-		buildFunction = ProjectCompile.staticLibraryBuildFunctionRecursive, 
-		VPATH = localEnv.getVPATH())
+staticLibPackage = Package.StaticLibraryPackage(
+	project = project,
+	packageName = Utils.getCurrentDirName(),
+	publicPackage = True,
+	exportedIncludeDirs = [ 'include' ]
+)
+if Utils.hostPlatform() == 'linux':
+	staticLibPackage.libs.append('rt')
 
-if localEnv.isRootProject():
-	standardTargets = Targets.makeStandardTargets(localEnv, targets)
-	localEnv.Default('all')
+staticLibPackage.build()
 
+###############################################################################
 
