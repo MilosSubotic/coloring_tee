@@ -1,4 +1,5 @@
+normal line
 ./system/core/include/arch/linux-mips/AndroidConfig.h:114:0: warning: "HAVE_SYS_UIO_H" redefined
 <command-line>:0:0: note: this is the location of the previous definition
-/home/workareas/subotic/Amuse/build_bcm97241/bcm_mipsics20121005/AppLibs/opensource/android/src/mips-ics/external/comedia/chal/tdal/src/tdal_dmd/tdal_dmd_ts_player.c:42:88: error: 'eTDAL_DMD' undeclared here (not in a function)
+tdal_dmd_ts_player.c:42:88: error: 'eTDAL_DMD' undeclared here (not in a function)
 

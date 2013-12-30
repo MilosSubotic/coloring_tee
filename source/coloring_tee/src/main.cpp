@@ -356,6 +356,9 @@ int main(int argc, char** argv){
 		config.pop();
 	}
 
+	// Just for debugging.
+	//ifstream cin("test/four_lines.txt");
+
 	if(coloringEnabled){
 		string line;
 		while(getline(cin, line)){
@@ -381,7 +384,7 @@ int main(int argc, char** argv){
 
 			cout << line << reset << endl;
 			for(int i = 0; i < htmlFiles.size(); i++){
-				*htmlFiles[i] << line << reset << std::endl;
+				*htmlFiles[i] << line << reset << endl;
 			}
 
 			for(int i = 0; i < files.size(); i++){
@@ -396,7 +399,7 @@ int main(int argc, char** argv){
 			cout << line << endl;
 
 			for(int i = 0; i < htmlFiles.size(); i++){
-				*htmlFiles[i] << line << std::endl;
+				*htmlFiles[i] << line << endl;
 			}
 
 			for(int i = 0; i < files.size(); i++){
