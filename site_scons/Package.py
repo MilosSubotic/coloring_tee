@@ -66,6 +66,7 @@ class BuildInterface(object):
 
 	def __init__(self):
 		variableKeys = [ 'CXXFLAGS', 'CFLAGS', 'CPPFLAGS', 'LIBS', 'LIBPATH',
+				'CPPPATH', 'CPPDEFINES',
 				'STATIC_LIBS', 'WHOLE_STATIC_LIBS', 'PACKAGE_BUILD_TARGET' ]
 		# TODO Clone it from somewhere.
 		self._variables = {}
