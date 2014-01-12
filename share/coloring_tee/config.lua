@@ -140,6 +140,20 @@ coloring_tee_config = {
 				searchString = '[fatal]',
 				color = red
 			},
-		}		
+		},
+		modelsim = {
+			info = { 
+				searchString = '** Info:',
+				color = red
+			},
+			warning = { 
+				searchString = '** Warning:',
+				color = red
+			},
+			error = { 
+				searchString = '** Error:',
+				color = red
+			},
+		},	
 	}
 }
