@@ -21,6 +21,9 @@ Changelog:
 import os
 import fnmatch
 import shutil
+import datetime
+
+import waflib
 
 ###############################################################################
 
