@@ -3,7 +3,7 @@
  * @date Dec 30, 2013
  *
  * @author Milos Subotic <milos.subotic.sm@gmail.com>
- * @license MIT
+ * @license LGPLv3
  *
  * @brief
  *

@@ -25,6 +25,7 @@ namespace os {
 
 		std::string join(const std::string& s0, const std::string& s1);
 		std::string normpath(const std::string& s);
+		std::string dirname(const std::string& s);
 
 	} // namespace path
 

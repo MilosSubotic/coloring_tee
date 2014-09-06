@@ -32,6 +32,9 @@ typedef std::runtime_error concurent_error;
 
 ///////////////////////////////////////////////////////////////////////////////
 
+// Because clang
+#define USE_PTHREAD_INSTEAD_STD_THREAD 1
+
 #if defined(__ANDROID__) || defined(USE_PTHREAD_INSTEAD_STD_THREAD) || \
 	!defined(_GLIBCXX_HAS_GTHREADS)
 
@@ -332,7 +335,7 @@ public:
 
 };
 
-#if 0
+#if 1
 
 #include <atomic>
 

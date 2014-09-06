@@ -2,11 +2,17 @@
  * @file LuaConfig.h
  * @date Feb 7, 2012
  *
- * @brief
- * @version 2.0
- * @author Milos Subotic milos.subotic.sm@gmail.com
+ * @author Milos Subotic <milos.subotic.sm@gmail.com>
+ * @license LGPLv3
  *
- * @license GPLv3
+ * @brief C++ helper classes for working with Lua config files.
+ *
+ * @version 3.1
+ * Changelog:
+ * 1.0 - Initial version.
+ * 2.0 - Modified for using utils package.
+ * 3.0 - Modified for using Exception.h.
+ * 3.1 - More methods.
  *
  */
 
@@ -22,59 +28,59 @@ extern "C" {
 }
 
 #include <string>
-#include <cstdlib>
-#include <stdexcept>
 
 #include "CommonMacros.h"
-
-#include "format.h"
+#include "Exceptions.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class LuaConfigError: public std::runtime_error{
+/**
+ * @class LuaConfigError
+ * @brief LuaConfig exception.
+ */
+class LuaConfigError : public Exception {
 public:
-
-	/** Takes a character std::string describing the error. */
+	explicit LuaConfigError()
+			: Exception("LuaConfigError") {
+	}
 	explicit LuaConfigError(const std::string& message)
-			: std::runtime_error(message){
+			: Exception("LuaConfigError", message) {
 	}
-	/** Accumulate earlier errors */
-	explicit LuaConfigError(const LuaConfigError& e, const std::string& message)
-			: std::runtime_error(message + "\n" + e.what()){
-	}
-
 };
 
+///////////////////////////////////////
+
 /**
- * C++ wrapper for Lua configuration file reader.
+ * @class LuaConfigError
+ * @brief C++ wrapper for Lua configuration file reader.
  */
-class LuaConfig{
+class LuaConfig {
 public:
 	lua_State* L;
 
 public:
 	/// For later deferred init.
-	LuaConfig()
-			: L(NULL){
+	LuaConfig() noexcept
+		: L(nullptr){
 	}
-
 	/**
 	 * Open Lua  config file.
 	 * @param fileName of Lua config file.
 	 * @throw if there is some error.
 	 */
-	LuaConfig(const char* fileName) throw(LuaConfigError);
-
+	LuaConfig(const char* fileName);
 	~LuaConfig() noexcept{
 		close();
 	}
 
+	///////////////////////////////////
+
+public:
 	/**
 	 * Deferred init, open Lua config file.
 	 * @param fileName of Lua config file.
 	 */
-	LuaConfig& open(const char* fileName) throw(LuaConfigError);
-
+	LuaConfig& open(const char* fileName);
 	/**
 	 * Closing Lua config file reader.
 	 */
@@ -82,7 +88,7 @@ public:
 		if(L){
 			lua_close(L);
 		}
-		L = NULL;
+		L = nullptr;
 	}
 
 	/**
@@ -94,68 +100,73 @@ public:
 	 * Read global table on top of Lua stack.
 	 * @param table
 	 */
-	LuaConfig& getGlobalTable(const char* table) throw(LuaConfigError);
+	LuaConfig& getGlobalTable(const char* table);
 
+	bool haveField(const char* key);
+	bool haveField(int key);
 	/**
 	 * Read std::string from table on top of Lua stack.
 	 * @param key for access a table.
 	 * @return read std::string.
 	 */
-	std::string getFieldString(const char *key) throw(LuaConfigError);
-	std::string getFieldString(int key) throw(LuaConfigError);
-
+	std::string getFieldString(const char* key);
+	std::string getFieldString(int key);
 	/**
 	 * Read int from table on top of Lua stack.
 	 * @param key for access a table.
 	 * @return read integer.
 	 */
-	int getFieldInt(const char *key) throw(LuaConfigError);
+	int getFieldInt(const char* key);
 	/**
 	 * Read double from table on top of Lua stack.
 	 * @param key for access a table.
 	 * @return read double number.
 	 */
-	double getFieldDouble(const char *key) throw(LuaConfigError);
-	double getFieldDouble(int key) throw(LuaConfigError);
-
+	double getFieldDouble(const char *key);
+	double getFieldDouble(int key);
 	/**
 	 * Read new table to top of stack from table on top of stack.
 	 * @param key for access a table.
 	 */
-	LuaConfig& getFieldTable(const char *key) throw(LuaConfigError);
-	LuaConfig& getFieldTable(int key) throw(LuaConfigError);
+	LuaConfig& getFieldTable(const char* key);
+	LuaConfig& getFieldTable(int key);
+
+	bool haveFieldTable(const char* key);
 
 	// For iterating tables.
 	void iterationInit() noexcept;
 	bool iterationCondition() noexcept;
 	void iterationIncrement() noexcept;
-	std::string getKeyAsString() throw(LuaConfigError);
+	std::string getKeyAsString();
 };
 
+///////////////////////////////////////
+
 /**
- * This class unwind Lua stack.
+ * @class LuaConfigUnwinder
+ * @brief This class unwind Lua stack.
  * It should be written just below try{
  * and constructor use LuaConfig or lua_State to
  * get Lua stack top index and destructor return
  * old index.
  */
-class LuaConfigUnwinder{
+class LuaConfigUnwinder {
 protected:
-	lua_State* luaState;
+	lua_State* L;
 	int luaStackTopIndex;
 public:
-	LuaConfigUnwinder(lua_State* L) noexcept{
-		luaState = L;
+	LuaConfigUnwinder(lua_State* L) noexcept {
+		this->L = L;
 		luaStackTopIndex = lua_gettop(L);
 	}
 
-	LuaConfigUnwinder(const LuaConfig& lc) noexcept{
-		luaState = lc.L;
-		luaStackTopIndex = lua_gettop(luaState);
+	LuaConfigUnwinder(const LuaConfig& lc) noexcept {
+		L = lc.L;
+		luaStackTopIndex = lua_gettop(L);
 	}
 
-	~LuaConfigUnwinder() noexcept{
-		lua_settop(luaState, luaStackTopIndex);
+	~LuaConfigUnwinder() noexcept {
+		lua_settop(L, luaStackTopIndex);
 	}
 
 };

@@ -224,7 +224,7 @@ int main(int argc, char** argv){
 	}
 
 	if(options[VERSION]){
-		cout << PROGRAM_NAME" "VERSION_STR"\n"
+		cout << PROGRAM_NAME << VERSION_STR << "\n"
 				<< versionString << endl;
 		return 0;
 	}

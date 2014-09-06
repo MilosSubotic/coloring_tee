@@ -18,7 +18,7 @@
 #define GCC_VERSION_LOWER_THAN(major, minor) \
 	(__GNUC__ < (major) || __GNUC_MINOR__ < (minor))
 
-#if !defined(__GXX_EXPERIMENTAL_CXX0X__) || GCC_VERSION_LOWER_THAN(4, 6)
+#if !defined(__GXX_EXPERIMENTAL_CXX0X__)
 
 #define constexpr
 
@@ -27,17 +27,19 @@
 #define nullptr NULL
 
 namespace std {
-	typedef void* nullptr_t;
+	typedef decltype(nullptr) nullptr_t;
 }
 
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
 
+#ifndef foreach
 #define foreach(element, collection) \
 	for(auto ___iter___ = collection.begin(), ___end___ = collection.end(); \
 			___iter___ != ___end___; ___iter___++) \
 		for(element = *___iter___;; __extension__ ({ break; }))
+#endif
 
 #define foreach_in_map(key, value, collection) \
 	for(auto ___iter___ = collection.begin(), ___end___ = collection.end(); \

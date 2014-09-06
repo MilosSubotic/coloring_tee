@@ -1,0 +1,39 @@
+#! /usr/bin/env python
+# encoding: utf-8
+
+'''
+@file: wscript
+@date: Sep 6, 2014
+
+@author: Milos Subotic <milos.subotic.sm@gmail.com>
+@license: MIT
+
+@brief: Waf script for building coloring_tee project's sources.
+
+@version: 1.0
+Changelog:
+1.0 - Initial version.
+
+'''
+
+###############################################################################
+
+subdirs = [ 
+	'utils', 
+	'coloring_tee'
+]
+
+def options(opt):
+	for subdir in subdirs:
+		opt.recurse(subdir)
+
+def configure(conf):
+	for subdir in subdirs:
+		conf.recurse(subdir)
+
+def build(bld):
+	for subdir in subdirs:
+		bld.recurse(subdir)
+
+###############################################################################
+

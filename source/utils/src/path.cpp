@@ -11,6 +11,7 @@
  */
 
 ///////////////////////////////////////////////////////////////////////////////
+
 #include "os/path.h"
 
 #include <algorithm>
@@ -46,7 +47,7 @@ namespace os {
 
 			// A//B to A/B
 			r.erase(
-				std::unique(r.begin(), r.end(), doubleSlash), 
+				std::unique(r.begin(), r.end(), doubleSlash),
 				r.end()
 			);
 
@@ -61,6 +62,16 @@ namespace os {
 
 			// TODO  A/foo/../B to A/B
 			return r;
+		}
+
+		std::string dirname(const std::string& s){
+			size_t found = s.find_last_of('/');
+			// Slesh not found
+			if(found == std::string::npos){
+				return std::string();
+			}else{
+				return s.substr(0, found);
+			}
 		}
 
 	} // namespace path

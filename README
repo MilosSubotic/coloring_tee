@@ -19,5 +19,5 @@
 	- new scripts.
 	- any kind of bug.
 
-- Source code is under GPLv3 license, except scons stuff which is under MIT.
+- Source code is under LGPLv3 license, except waf stuff which is under MIT.
 	

@@ -42,7 +42,7 @@ tab(std::basic_ostream<CharType, TraitsType>& __os){
 }
 
 #define PRINT(x) #x << " = " << x
-#define POSITION __PRETTY_FUNCTION__ << " @ " 	<< __LINE__ << ": "
+#define POSITION __PRETTY_FUNCTION__ << " @ " << __LINE__ << ": "
 #define DEBUG(x) do{ debugLog << PRINT(x) << endl; }while(0)
 #define TRACE() do{ debugLog << POSITION << endl; }while(0)
 #define PRINT_ADDRESS(x) std::hex << x \

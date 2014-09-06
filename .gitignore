@@ -5,5 +5,9 @@
 *.so
 *.d
 *.pyc
-.sconsign.dblite
+__pycache__
 build/
+out/
+doxygen/
+.waf*
+.lock-waf*

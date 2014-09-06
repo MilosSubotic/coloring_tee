@@ -2,21 +2,19 @@
 - To install prerequisites for build, installation and usage this program 
 on Ubuntu/Debian do:
 
-	sudo apt-get install g++ scons pkg-config liblua5.1-dev
+	sudo apt-get install g++ python pkg-config liblua5.1-dev
 
-- Remove stale files:
+- To build and install run:
 
-	rm -f .sconsign.dblite site_scons/*.pyc
-
-- If you want you could configure global config file:
-
-	gedit share/coloring_tee/config.lua
+	./waf configure
+	./waf build
+	sudo ./waf install
 	
-	or you could edit "~/.coloring_tee/config.lua" which will be made after 
-	first run of program coloring_tee.
 
-- For build and install run:
+- Global configuration file is:
 
-	scons
-	sudo scons install
-	
+	${PREFIX}/share/coloring_tee/config.lua
+
+- User configuration file is:
+	~/.coloring_tee/config.lua
+
