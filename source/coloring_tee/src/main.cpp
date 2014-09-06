@@ -42,7 +42,7 @@ using namespace ostream_color_log;
 ///////////////////////////////////////////////////////////////////////////////
 
 static const char* versionString =
-"License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n"
+"License LGPLv3+: GNU LGPL version 3 or later <http://gnu.org/licenses/lgpl.html>.\n"
 "This is free software: you are free to change and redistribute it.\n"
 "There is NO WARRANTY, to the extent permitted by law.\n"
 "\n"
@@ -224,7 +224,7 @@ int main(int argc, char** argv){
 	}
 
 	if(options[VERSION]){
-		cout << PROGRAM_NAME << VERSION_STR << "\n"
+		cout << PROGRAM_NAME << " v" << VERSION_STR << "\n"
 				<< versionString << endl;
 		return 0;
 	}
