@@ -79,6 +79,10 @@ coloring_tee_config = {
 				searchString = '*** No rule to make target',
 				color = red
 			},
+			command_not_found = {
+				searchString = ': Command not found',
+				color = red
+			},
 			-- ndk-build.
 			WARNING = {
 				searchString = 'WARNING:',
